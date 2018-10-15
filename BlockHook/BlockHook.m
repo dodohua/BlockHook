@@ -138,7 +138,7 @@ static void _hunt_blocks_for_image(const struct mach_header *header, intptr_t sl
     void *_originInvoke;
     void *_replacementInvoke;
     ffi_closure *_closure;
-    
+    NSMethodSignature *originalBlockSignature;
 }
 @property (nonatomic) NSMutableArray *allocations;
 @property (nonatomic, weak) id block;
@@ -158,6 +158,7 @@ static void _hunt_blocks_for_image(const struct mach_header *header, intptr_t sl
     {
         _allocations = [[NSMutableArray alloc] init];
         _block = block;
+        originalBlockSignature = [NSMethodSignature signatureWithObjCTypes:BHBlockTypeEncodeString(_block)];
         _closure = ffi_closure_alloc(sizeof(ffi_closure), &_replacementInvoke);
         _numberOfArguments = [self _prepCIF:&_cif withEncodeString:BHBlockTypeEncodeString(_block)];
         BHDealloc *bhDealloc = [BHDealloc new];
@@ -460,7 +461,7 @@ static int BHArgCount(const char *str)
         return NO;
     }
     NSMethodSignature *hookBlockSignature = [NSMethodSignature signatureWithObjCTypes:BHBlockTypeEncodeString(self.hookBlock)];
-    NSMethodSignature *originalBlockSignature = [NSMethodSignature signatureWithObjCTypes:BHBlockTypeEncodeString(self.block)];
+    
     NSInvocation *blockInvocation = [NSInvocation invocationWithMethodSignature:hookBlockSignature];
     
     // origin block invoke func arguments: block(self), ...
